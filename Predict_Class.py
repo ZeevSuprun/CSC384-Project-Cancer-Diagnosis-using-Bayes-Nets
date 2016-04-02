@@ -138,8 +138,6 @@ def print_variable_factor(fact):
         out_str += ") = {}".format(fact.get_value(assignment))
         print(out_str)
 
-
-
 def output_to_txt(fact):
     '''
     fact is a factor that must be P(malignant | 1 variable)
@@ -154,6 +152,22 @@ def output_to_txt(fact):
         if assignment[0] == 4:
             to_write = str(assignment[1]) + ',' + str(fact.get_value(assignment)) + '\n'
             output_file.write(to_write)
+
+def output_joint_distrib_to_txt(fact, filename):
+    '''
+    fact is a factor that's a joint distribution of 2 variables.
+    This function creates a file containing the data in the factor.
+    each column is a value of a variable, the last column is the probability.
+    '''
+    output_file = open(filename, 'w')
+
+    for assignment in fact.get_assignment_iterator():
+            to_write = ""
+            for val in assignment:
+                to_write += str(val) + ','
+            to_write += str(fact.get_value(assignment)) + '\n'
+            output_file.write(to_write)
+
 
 
 def check_equal(f1, f2):
@@ -299,6 +313,16 @@ for var in var_list:
         output_to_txt(factor_list[-1])
 '''
 
+#generate a list of joint probability factors, P(Malignant, Var) for all variables
+factor_list = []
+for var in var_list:
+    if var != var_list[-1]:
+        factor_list.append(create_variable_factor([var_list[-1], var], training_data))
+        output_joint_distrib_to_txt(factor_list[-1], "joint_pdf" + str(var_list.index(var)))
+
+
+
+
 '''
 #check for conditional independence for all possible variable combinations.
 for var1 in var_list:
@@ -320,19 +344,19 @@ for var1 in var_list:
 #but no other conditional independence with smaller epsilon.
 
 #fact1 = P(Malignant | Clump_thickness)
-fact1 = create_conditional_factor(var_list[-1], [var_list[0]], training_data)
+fact1 = create_conditional_factor(var_list[-1], [var_list[-2]], training_data)
+print_conditional_factor(fact1)
 
 #fact2 is P(Malignant | Clump Thickness, Uniformity of Cell Size)
 fact2 = create_conditional_factor(var_list[-1], [var_list[0], var_list[1]], training_data)
 #print_factor(fact1)
 #print_factor(fact2)
 
-
 #print(check_independence(fact1, fact2))
-prob_var = create_variable_factor([var_list[1], var_list[-1]], training_data)
+prob_var = create_variable_factor([var_list[-2], var_list[-1]], training_data)
 print_variable_factor(prob_var)
 
-
+#uniformity of cell size and bare nuclei should be the most important values.
 
 
 
