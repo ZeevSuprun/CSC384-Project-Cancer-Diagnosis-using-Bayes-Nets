@@ -52,7 +52,7 @@ def createFactor (required_var, given_var_list, dataset):
             if (num_examples != 0):
                 prob = num_each_value[val] / num_examples
             else:
-                prob = 0
+                prob = "-"
 
             new_factor.add_value_at_assignment(prob, [val] + assignments[index])
 
@@ -105,7 +105,7 @@ def check_equal(f1, f2):
     return true if f1 and f2 are equal within an epsilon.
     '''
     are_equal = True
-    epsilon = 0.01
+    epsilon = 0.05
     for asssignment in f1.get_assignment_iterator():
         diff = f1.get_value(asssignment) - f2.get_value(asssignment)
         if (not (abs(diff) < epsilon)):
@@ -159,7 +159,6 @@ def check_independence(fact1, fact2):
     for val in var.domain():
         restricted_f2 = restrict_factor(fact2, var, val)
 
-        #TODO: check if restricted_f2 == fact1, within an epsilon
         if(not check_equal(restricted_f2, fact1)):
             are_equal = False
             break
@@ -223,16 +222,16 @@ print_factor(fact)
 
 #fact1a = P(Malignant | Uniformity of Cell Size)
 fact1a = createFactor(var_list[-1], [var_list[1]], training_data)
-print(fact1a.name)
-print(fact1a.get_scope())
-output_to_txt(fact1a)
+#output_to_txt(fact1a)
+
+print(check_equal(fact1a, fact1a))
 
 #fact1b = P(Malignant | Clump_thickness)
-fact1b = createFactor(var_list[-1], [var_list[0]], training_data)
+#fact1b = createFactor(var_list[-1], [var_list[0]], training_data)
 
 
 #fact2 is P(Malignant | Clump Thickness, Uniformity of Cell Size)
-fact2 = createFactor(var_list[-1], [var_list[0], var_list[1]], training_data)
+#fact2 = createFactor(var_list[-1], [var_list[0], var_list[1]], training_data)
 #print_factor(fact1b)
 #print_factor(fact2)
 
