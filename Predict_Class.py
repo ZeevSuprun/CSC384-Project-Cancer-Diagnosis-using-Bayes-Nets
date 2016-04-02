@@ -43,8 +43,8 @@ def createFactor (required_var, given_var_list, dataset):
             num_each_value[val] += 1
 
         #for every element in dataset that gives the given variables the assigned values
-        print(num_each_value)
-        print("\n")
+        #print(num_each_value)
+        #print("\n")
         for val in required_var.domain():
 
             # P(required_var = val | this assignment of the given vars) =
@@ -79,6 +79,24 @@ def print_factor(fact):
         #print(assignment)
         out_str += ") = {}".format(fact.get_value(assignment))
         print(out_str)
+
+def output_to_txt(fact):
+    '''
+    fact is a factor that must be P(malignant | 1 variable)
+    This function creates a file containing the data in the factor.
+    1st column is value of variable. second column is P(malignant == 4 | variable = value)
+    '''
+    scope = fact.get_scope()
+    filename = scope[1].name[2:] + ".txt"
+    output_file = open(filename, 'w')
+
+    for assignment in fact.get_assignment_iterator():
+        if assignment[0] == 4:
+            to_write = str(assignment[1]) + ',' + str(fact.get_value(assignment)) + '\n'
+            output_file.write(to_write)
+
+
+
 
 def check_equal(f1, f2):
     '''
@@ -205,6 +223,10 @@ print_factor(fact)
 
 #fact1a = P(Malignant | Uniformity of Cell Size)
 fact1a = createFactor(var_list[-1], [var_list[1]], training_data)
+print(fact1a.name)
+print(fact1a.get_scope())
+output_to_txt(fact1a)
+
 #fact1b = P(Malignant | Clump_thickness)
 fact1b = createFactor(var_list[-1], [var_list[0]], training_data)
 
@@ -212,7 +234,7 @@ fact1b = createFactor(var_list[-1], [var_list[0]], training_data)
 #fact2 is P(Malignant | Clump Thickness, Uniformity of Cell Size)
 fact2 = createFactor(var_list[-1], [var_list[0], var_list[1]], training_data)
 #print_factor(fact1b)
-print_factor(fact2)
+#print_factor(fact2)
 
 #print(check_independence(fact1b, fact2))
 
