@@ -221,10 +221,14 @@ print_factor(fact)
 '''
 
 #fact1a = P(Malignant | Uniformity of Cell Size)
-fact1a = createFactor(var_list[-1], [var_list[1]], training_data)
-#output_to_txt(fact1a)
+factor_list = []
+for var in var_list:
+    if var != var_list[-1]:
+        factor_list.append(createFactor(var_list[-1], [var], training_data))
+        output_to_txt(factor_list[-1])
 
-print(check_equal(fact1a, fact1a))
+#fact1a = createFactor(var_list[-1], [var_list[1]], training_data)
+
 
 #fact1b = P(Malignant | Clump_thickness)
 #fact1b = createFactor(var_list[-1], [var_list[0]], training_data)
