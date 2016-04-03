@@ -248,6 +248,35 @@ def check_independence(fact1, fact2):
 
     return are_equal
 
+def find_correlation(varX, varY, dataset):
+    '''var1 and var2 are variables, dataset is the same thing as before.
+    this function returns the correlation between var1 and var2.
+    '''
+    n = len(dataset) # number of examples
+
+    sum_x = 0
+    sum_y = 0
+    sum_xy = 0
+
+    sum_x2 = 0 # sum (x^2)
+    sum_y2 = 0
+
+    x_index = int(varX.name[0])
+    y_index = int(varY.name[0])
+
+    for example in dataset:
+        x_i = example[x_index]
+        y_i = example[y_index]
+
+        sum_x += x_i
+        sum_y += y_i
+        sum_xy += x_i * y_i
+        sum_x2 += x_i**2
+        sum_y2 += y_i**2
+
+    corr = (n * sum_xy - sum_x * sum_y) / ((n*sum_x2 - sum_x**2)**0.5 * (n*sum_y2 - sum_y**2)**0.5)
+    return corr
+
 
 '''
  #  Attribute                     Domain
@@ -313,13 +342,13 @@ for var in var_list:
         output_to_txt(factor_list[-1])
 '''
 
+
 #generate a list of joint probability factors, P(Malignant, Var) for all variables
 factor_list = []
 for var in var_list:
     if var != var_list[-1]:
-        factor_list.append(create_variable_factor([var_list[-1], var], training_data))
+        factor_list.append(create_variable_factor([var, var_list[-1]], training_data))
         output_joint_distrib_to_txt(factor_list[-1], "joint_pdf" + str(var_list.index(var)))
-
 
 
 
@@ -345,7 +374,7 @@ for var1 in var_list:
 
 #fact1 = P(Malignant | Clump_thickness)
 fact1 = create_conditional_factor(var_list[-1], [var_list[-2]], training_data)
-print_conditional_factor(fact1)
+#print_conditional_factor(fact1)
 
 #fact2 is P(Malignant | Clump Thickness, Uniformity of Cell Size)
 fact2 = create_conditional_factor(var_list[-1], [var_list[0], var_list[1]], training_data)
@@ -354,11 +383,13 @@ fact2 = create_conditional_factor(var_list[-1], [var_list[0], var_list[1]], trai
 
 #print(check_independence(fact1, fact2))
 prob_var = create_variable_factor([var_list[-2], var_list[-1]], training_data)
-print_variable_factor(prob_var)
-
-#uniformity of cell size and bare nuclei should be the most important values.
+#print_variable_factor(prob_var)
 
 
-
-
-
+correlation_matrix = [[0.0 for i in var_list] for j in var_list]
+print(names)
+for i in range(len(var_list)):
+    for j in range(i+1):
+        corr = find_correlation(var_list[i], var_list[j], training_data)
+        correlation_matrix[i][j] = round(corr,2)
+    print(correlation_matrix[i])
