@@ -108,8 +108,9 @@ def print_conditional_factor(fact):
     for bckwds_assignment in bckwds_fact.get_assignment_iterator():
         #print(assignment)
 
-        out_str = "P(Class == " + str(bckwds_assignment[-1]) + "| "
         given_vars = fact.get_scope()
+        out_str = "P(" + given_vars[0].name[2:] + " == " + str(bckwds_assignment[-1]) + "| "
+
         given_vars = given_vars[1:]
         cntr = 0
         for var in given_vars:
@@ -177,7 +178,7 @@ def check_equal(f1, f2):
     return true if f1 and f2 are equal within an epsilon.
     '''
     are_equal = True
-    epsilon = 0.55
+    epsilon = 0.1
     for asssignment in f1.get_assignment_iterator():
         v1 = f1.get_value(asssignment)
         v2 = f2.get_value(asssignment)
@@ -210,7 +211,7 @@ def check_independence(fact1, fact2):
     P(R | B, Y) = P(R |Y)
 
     ----------
-    M, B are cond. indep. given A iff
+    M, cond. indep. of B given A iff
     P(M | B, A) = P(M |A)
     P(M, B | A ) = P(M | A) * P (B | A)
     ----------
@@ -276,6 +277,76 @@ def find_correlation(varX, varY, dataset):
 
     corr = (n * sum_xy - sum_x * sum_y) / ((n*sum_x2 - sum_x**2)**0.5 * (n*sum_y2 - sum_y**2)**0.5)
     return corr
+
+def naive_bayes_predict(class_var, var_list, training_data, test_data):
+    '''
+    class_var is the "class" variable that can take a value of 2 for benign and 4 for malignant.
+    var_list is a list of variables (not including the class_var)
+    training_data is an array of examples from data.txt to be used for training.
+    test_data is another array of examples from data.txt.
+
+    predicted class = argmax over v ( P(Y = v) * Product(P(Xi = ui | Y = v) )
+    '''
+
+    prob_class = create_variable_factor([class_var], training_data) #P(Y) factor table.
+
+    #list of P(Xi | Y) for all i
+    factor_list = [create_conditional_factor(var, [class_var], training_data) for var in var_list]
+
+    vals_to_assign = [0 for i in range(len(factor_list))]
+
+    num_correct_predictions = 0
+    true_pos = 0
+    false_pos = 0
+    false_neg = 0
+    #for every example in the test_data, predict the outcome.
+    for example in test_data:
+
+        #populate vals_to_assign using the example
+        for i in range(len(vals_to_assign)):
+            vals_to_assign[i] = example[int(var_list[i].name[0])]
+
+        prod_2 = prob_class.get_value([2])
+        prod_4 = prob_class.get_value([4])
+
+        for i in range(len(factor_list)):
+            prod_2 *= factor_list[i].get_value([vals_to_assign[i], 2])
+            prod_4 *= factor_list[i].get_value([vals_to_assign[i], 4])
+
+        predicted_result = 0
+        if prod_4 > prod_2:
+            predicted_result = 4
+        else:
+            predicted_result = 2
+
+        actual_class = example[int(class_var.name[0])]
+
+        if predicted_result == actual_class:
+            num_correct_predictions += 1
+
+        #calculating number of true postives, false positives, false negatives.
+        if (predicted_result == 4 and actual_class == 4):
+            true_pos += 1
+        elif (predicted_result == 4 and actual_class == 2):
+            false_pos += 1
+        elif (predicted_result == 2 and actual_class == 4):
+            false_neg += 1
+
+    print("number of true positives is {}".format(true_pos))
+    print("number of false positives is {}".format(false_pos))
+    print("number of false negatives is {}".format(false_neg))
+
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+
+    print("Precision is {}".format(precision))
+    print("Recall is {}".format(recall))
+
+    F1 = 2*precision*recall / (precision + recall)
+    print("F1 score is {}".format(F1))
+    #return the rate of correct predictions.
+    print(len(test_data))
+    return num_correct_predictions / len(test_data)
 
 
 '''
@@ -385,7 +456,7 @@ fact2 = create_conditional_factor(var_list[-1], [var_list[0], var_list[1]], trai
 prob_var = create_variable_factor([var_list[-2], var_list[-1]], training_data)
 #print_variable_factor(prob_var)
 
-
+'''
 correlation_matrix = [[0.0 for i in var_list] for j in var_list]
 print(names)
 for i in range(len(var_list)):
@@ -393,3 +464,29 @@ for i in range(len(var_list)):
         corr = find_correlation(var_list[i], var_list[j], training_data)
         correlation_matrix[i][j] = round(corr,2)
     print(correlation_matrix[i])
+'''
+
+'''
+#Testing to make sure multiplying 2 variables is the same as creating a factor with 2 variables.
+#Wait: shouldn't they be equal only if the 2 variables are independent? :?
+fact1 = create_variable_factor([var_list[-2]], training_data)
+fact2 = create_variable_factor([var_list[-1]], training_data)
+fact_join = create_variable_factor([var_list[-2], var_list[-1]], training_data)
+mult_fact = multiply_factors([fact1, fact2])
+
+print_variable_factor(fact1)
+print_variable_factor(fact2)
+print_variable_factor(fact_join)
+print_variable_factor(mult_fact)
+print(check_equal(fact_join, mult_fact))
+
+#Results: mult_fact and join_fact should be equal.
+# It turns out they are equal up to an epsilon of 0.1 for these two variables. (mitosis and class)
+'''
+
+#prediction_rate = naive_bayes_predict(var_list[-1], var_list[0:len(var_list) - 1], training_data, training_data)
+n = 200
+prediction_rate = naive_bayes_predict(var_list[-1], var_list[0:len(var_list) - 1], training_data[0:n], training_data[n:367])
+
+
+print(prediction_rate)
