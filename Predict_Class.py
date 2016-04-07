@@ -351,6 +351,7 @@ def naive_bayes_predict(class_var, var_list, training_data, test_data):
 dom = [1,2,3,4,5,6,7,8,9,10]
 names = ["Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape", "Marginal Adhesion","Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"]
 
+
 var_list = [0 for i in range(len(names))]
 
 for i in range(len(names)):
@@ -359,8 +360,8 @@ for i in range(len(names)):
     else:
         var_list[i] = Variable("{}_{}".format(i, names[i]), dom)
 
-#a variables name is index_name, where index is the index of that variable in the csv file.
-#note that sample code number isn't included in var_list.
+#a variables name is index_name, where index is the index of that variable in an element of the training_data list.
+#note that sample code number isn't included in var_list or in training_data.
 
 data_file = open("data.txt", 'r')
 training_data = []
@@ -373,7 +374,10 @@ for line in data_file:
         for i in range(len(split_line)):
             split_line[i] = int(split_line[i])
         training_data.append(split_line[1:])
-
+#training_data is a list of lists. Each element in training_data looks something like this:
+#[5, 1, 1, 1, 2, 1, 3, 1, 1, 2]
+#where the first value is the value of Clump Thickness, the second element is the value of Uniformity of Cell Size,
+#and so on.
 
 '''
 #generate a list of factors, P(Malignant | Var) for all variables, and output to a .txt file.
@@ -442,11 +446,13 @@ print(check_equal(fact_join, mult_fact))
 # It turns out they are equal up to an epsilon of 0.1 for these two variables. (mitosis and class)
 '''
 
-#names = ["Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape", "Marginal Adhesion","Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"]
+#var_list = [0_Clump Thickness, 1_Uniformity of Cell Size, 2_Uniformity of Cell Shape, 3_Marginal Adhesion, 4_Single Epithelial Cell Size, 5_Bare Nuclei, 6_Bland Chromatin, 7_Normal Nucleoli, 8_Mitoses, 9_Class]
 
 n = 478
 
 best_vars = [var_list[1], var_list[4], var_list[6]]
 #prediction_rate = naive_bayes_predict(var_list[-1], var_list[0:len(var_list) - 2], training_data[0:n], training_data[n:])
 prediction_rate = naive_bayes_predict(var_list[-1], best_vars, training_data[0:n], training_data[n:])
-print(prediction_rate)
+print("Classification rate: {}".format(prediction_rate))
+
+data_file.close()
